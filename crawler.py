@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import csv
 from datetime import datetime
 from multiprocessing import Pool
+import time
 
 
 # from urllib.request import urlopen
@@ -73,19 +74,18 @@ def get_page_data(html):
         tab_content = []
         options = soup.find('div', class_='tab-content').find_all('div', class_='tab-pane')
         bv = ''
-        t = ''
         for option in options:
             # option.text.strip()
             # tab_content += ',"' + option + '"'
-
+            t = '</div><div>'
             for a in option.find_all('p'):
                 a = a.find_all('span')
+
                 for b in a:
-                    t = t + b.text
+                    t = t + b.text + '<br>'
                     # a = a.append(t)
                     # print(t)
-
-            bv = t + "<br>"
+            bv = t + '</div><div>'
 
             try:
                 tb_contents = ''
@@ -145,15 +145,17 @@ def get_page_data(html):
 
     return data
 
-def write_csv(data):
+def write_csv(data, file_name):
+    name = file_name + '.csv'
     with open(
-            'catalog.csv',
-            #'Настенные флорариумы FLANDRISS.csv',
-            #'Настенные чаши FLANDRISS.csv',
-            #'Подвесные флорариумы FLANDRISS.csv',
+            # 'catalog.csv',
+            # 'Настенные флорариумы FLANDRISS.csv',
+            # 'Настенные чаши FLANDRISS.csv',
+            # 'Подвесные флорариумы FLANDRISS.csv',
             # 'Панно.csv',
             # 'Настольные композиции.csv',
             # 'Композиции для FLANDRISS.csv',
+             name,
             'a') as file:
 
 
@@ -180,41 +182,69 @@ def make_all(url):
 def main():
     start = datetime.now()                      #старт времени  работы скрипта
 
-    # url = 'https://flandriss.ru/nastennie-fasadi-flandriss/?limit=100'                #Настенные флорариумы FLANDRISS
-    # url = 'https://flandriss.ru/podvesnie-chashi-/?limit=100'                         #Настенные чаши FLANDRISS
-    # url = 'https://flandriss.ru/1/?limit=100'                                         #Подвесные флорариумы FLANDRISS
-    # url = 'https://flandriss.ru/index.php?route=product/category&path=61'             #Панно
-    # url = 'https://flandriss.ru/zerkala-v-ramah/?limit=100'                           #Настольные композиции
+    # # url = 'https://flandriss.ru/nastennie-fasadi-flandriss/?limit=100'                #Настенные флорариумы FLANDRISS
+    # # url = 'https://flandriss.ru/podvesnie-chashi-/?limit=100'                         #Настенные чаши FLANDRISS
+    # # url = 'https://flandriss.ru/1/?limit=100'                                         #Подвесные флорариумы FLANDRISS
+    # # url = 'https://flandriss.ru/index.php?route=product/category&path=61'             #Панно
+    # # url = 'https://flandriss.ru/zerkala-v-ramah/?limit=100'                           #Настольные композиции
     # url = 'https://flandriss.ru/index.php?route=product/category&path=62&limit=100'   #Композиции для FLANDRISS
 
+    # 'https://flandriss.ru/nastennie-fasadi-flandriss/?limit=100',  # Настенные флорариумы FLANDRISS
+    # 'https://flandriss.ru/podvesnie-chashi-/?limit=100',  # Настенные чаши FLANDRISS
+    # 'https://flandriss.ru/1/?limit=100',  # Подвесные флорариумы FLANDRISS
+    # 'https://flandriss.ru/index.php?route=product/category&path=61',  # Панно
+    # 'https://flandriss.ru/zerkala-v-ramah/?limit=100',  # Настольные композиции
+    # 'https://flandriss.ru/index.php?route=product/category&path=62&limit=100',  # Композиции для FLANDRISS
+
+
+    # ссылки и имена файлов
     urls = [
-        'https://flandriss.ru/nastennie-fasadi-flandriss/?limit=100',                #Настенные флорариумы FLANDRISS
-        'https://flandriss.ru/podvesnie-chashi-/?limit=100',                         #Настенные чаши FLANDRISS
-        'https://flandriss.ru/1/?limit=100',                                         #Подвесные флорариумы FLANDRISS
-        'https://flandriss.ru/index.php?route=product/category&path=61',             #Панно
-        'https://flandriss.ru/zerkala-v-ramah/?limit=100',                           #Настольные композиции
-        'https://flandriss.ru/index.php?route=product/category&path=62&limit=100',   #Композиции для FLANDRISS
+        {
+            'url': 'https://flandriss.ru/nastennie-fasadi-flandriss/?limit=100',
+            'file_name': 'Настенные флорариумы FLANDRISS',
+        },
+        {
+            'url': 'https://flandriss.ru/podvesnie-chashi-/?limit=100',
+            'file_name': 'Настенные чаши FLANDRISS',
+        },
+        {
+            'url': 'https://flandriss.ru/1/?limit=100',
+            'file_name': 'Подвесные флорариумы FLANDRISS',
+        },
+        {
+            'url': 'https://flandriss.ru/index.php?route=product/category&path=61',
+            'file_name': 'Панно',
+        },
+        {
+            'url': 'https://flandriss.ru/zerkala-v-ramah/?limit=10',
+            'file_name': 'Настольные композиции',
+        },
+        {
+            'url': 'https://flandriss.ru/index.php?route=product/category&path=62&limit=100',
+            'file_name': 'Композиции для FLANDRISS',
+        },
            ]
-    for url in urls:
 
-        all_links = get_all_links(get_html(url))
-
-
-        # 0:00:18.143038
-        # for index, url in enumerate(all_links):     # где index - придуманный агрумента в который функция enumerate записывает значения нумерация опираций строк
-        #     html = get_html(url)                    # получаем html код страниц
-        #     data = get_page_data(html)              # получаем необходимые теги со стринцы
-        #     write_csv(data)                         #записываме в файл
-        #     print(index)
+    for link in urls:
+        time.sleep(20)
+        all_links = get_all_links(get_html(link['url'])) # получаем все ссылки на товар с данной страницы
 
 
-    #   много поточность где 20 колличество процессом оно может быть любое
-    #     map(funck, list) map работает как цикл фор он предает из списка list по одному значения и подставляет их в функуцию
-    #     для него создаем функцию make all
-        with Pool(40) as p:
-            p.map(make_all, all_links)
+    # 0:00:18.143038
+        for index, url in enumerate(all_links):     # где index - придуманный агрумента в который функция enumerate записывает значения нумерация опираций строк
+            html = get_html(url)                    # получаем html код страниц
+            data = get_page_data(html)              # получаем необходимые теги со стринцы
+            write_csv(data, link['file_name'])                         #записываме в файл
+            print(index)
 
 
+#   много поточность где 20 колличество процессом оно может быть любое
+#     map(funck, list) map работает как цикл фор он предает из списка list по одному значения и подставляет их в функуцию
+#     для него создаем функцию make all
+#     with Pool(40) as p:
+#         p.map(make_all, all_links)
+#
+#
     end = datetime.now()                        #окончание времени  работы скрипта
 
     total = end - start
